@@ -5,6 +5,7 @@ import { SimulationState, Persona } from '../types';
 interface ConfigPanelProps {
   state: SimulationState;
   setState: React.Dispatch<React.SetStateAction<SimulationState>>;
+  onSavePersona: (persona: Persona) => void;
 }
 
 interface OpenRouterModel {
@@ -23,7 +24,7 @@ const AVATAR_STYLES = [
   { id: 'thumbs', name: 'Shapes' },
 ];
 
-const ConfigPanel: React.FC<ConfigPanelProps> = ({ state, setState }) => {
+const ConfigPanel: React.FC<ConfigPanelProps> = ({ state, setState, onSavePersona }) => {
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const [activeStyle, setActiveStyle] = useState<string>('bottts-neutral');
   const [orModels, setOrModels] = useState<OpenRouterModel[]>([]);
@@ -193,7 +194,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ state, setState }) => {
             }).slice(0, 100);
 
             return (
-              <div key={p.id} className="bg-[rgba(11,19,36,0.85)] border border-white/10 rounded-2xl p-5 flex flex-col gap-3 group relative overflow-visible shadow-[0_24px_40px_rgba(6,10,20,0.35)]">
+              <div key={p.id} className="bg-[rgba(11,19,36,0.85)] border border-white/10 rounded-2xl p-5 pb-14 flex flex-col gap-3 group relative overflow-visible shadow-[0_24px_40px_rgba(6,10,20,0.35)]">
                 {/* Background gradient hint */}
                 <div className="absolute top-0 right-0 w-32 h-32 opacity-20 blur-3xl rounded-full pointer-events-none" style={{ backgroundColor: p.color }}></div>
                 <div className="flex items-start justify-between gap-3">
@@ -401,6 +402,18 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ state, setState }) => {
                     </div>
                   </div>
                 </div>
+
+                <button
+                  onClick={() => onSavePersona(p)}
+                  className="absolute bottom-4 right-4 flex items-center gap-2 text-[10px] uppercase tracking-widest bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-3 py-1.5 rounded-xl border border-white/10 transition-all duration-200 ease-out"
+                  aria-label={`Save configuration for ${p.name}`}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h8l4 4v12a2 2 0 01-2 2H7a2 2 0 01-2-2V5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v4h6V5" />
+                  </svg>
+                  Save
+                </button>
               </div>
             );
           })}

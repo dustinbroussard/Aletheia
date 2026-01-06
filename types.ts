@@ -14,6 +14,11 @@ export interface Persona {
   maxTokens: number;
 }
 
+export interface SavedPersona extends Persona {
+  savedId: string;
+  savedAt: number;
+}
+
 export interface MessageMetadata {
   latencyMs: number;
   tokenCount: number;

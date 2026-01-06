@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Persona, Message, SimulationState } from './types';
+import { Persona, Message, SimulationState, SavedPersona } from './types';
 import { generateAgentResponse } from './geminiService';
 import Sidebar from './components/Sidebar';
 import SimulationTheater from './components/SimulationTheater';
@@ -16,6 +16,7 @@ interface BeforeInstallPromptEvent extends Event {
 const INSTALL_PROMPT_SESSION_KEY = 'pwa_install_prompt_session';
 const INSTALL_PROMPT_LAST_SHOWN_KEY = 'pwa_install_prompt_last_shown';
 const INSTALL_PROMPT_COOLDOWN_DAYS = 0;
+const SAVED_PERSONAS_KEY = 'aletheia_saved_personas';
 
 const DEFAULT_PERSONAS: Persona[] = [
   {
@@ -54,6 +55,19 @@ const App: React.FC = () => {
     openRouterKey: localStorage.getItem('openrouter_key') || ''
   });
 
+  const [savedPersonas, setSavedPersonas] = useState<SavedPersona[]>(() => {
+    try {
+      const raw = localStorage.getItem(SAVED_PERSONAS_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed;
+    } catch (error) {
+      console.warn('Failed to parse saved personas', error);
+      return [];
+    }
+  });
+
   const [view, setView] = useState<'theater' | 'config'>('theater');
   const [streamingText, setStreamingText] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -65,6 +79,10 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('openrouter_key', state.openRouterKey);
   }, [state.openRouterKey]);
+
+  useEffect(() => {
+    localStorage.setItem(SAVED_PERSONAS_KEY, JSON.stringify(savedPersonas));
+  }, [savedPersonas]);
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -142,6 +160,36 @@ const App: React.FC = () => {
     loopRef.current = false;
   };
 
+  const savePersona = (persona: Persona) => {
+    setSavedPersonas(prev => [
+      {
+        ...persona,
+        savedId: crypto.randomUUID(),
+        savedAt: Date.now()
+      },
+      ...prev
+    ]);
+  };
+
+  const updateSavedPersona = (savedId: string, updates: Partial<SavedPersona>) => {
+    setSavedPersonas(prev => prev.map(p => p.savedId === savedId ? { ...p, ...updates } : p));
+  };
+
+  const deleteSavedPersona = (savedId: string) => {
+    setSavedPersonas(prev => prev.filter(p => p.savedId !== savedId));
+  };
+
+  const recallSavedPersona = (savedId: string) => {
+    const saved = savedPersonas.find(p => p.savedId === savedId);
+    if (!saved) return;
+    const { savedId: _savedId, savedAt: _savedAt, ...persona } = saved;
+    const newPersona: Persona = {
+      ...persona,
+      id: crypto.randomUUID()
+    };
+    setState(prev => ({ ...prev, personas: [...prev.personas, newPersona] }));
+  };
+
   const handleNextTurn = useCallback(async () => {
     if (!loopRef.current || state.isPaused || isProcessing || state.personas.length === 0) return;
 
@@ -210,7 +258,15 @@ const App: React.FC = () => {
       />
       
       <main className="flex flex-1 min-h-0 overflow-hidden">
-        <Sidebar state={state} setView={setView} currentView={view} />
+        <Sidebar 
+          state={state} 
+          setView={setView} 
+          currentView={view} 
+          savedPersonas={savedPersonas}
+          onRecallSavedPersona={recallSavedPersona}
+          onDeleteSavedPersona={deleteSavedPersona}
+          onUpdateSavedPersona={updateSavedPersona}
+        />
         
         <div className="flex-1 min-h-0 p-6 overflow-hidden flex flex-col">
           {view === 'theater' ? (
@@ -222,7 +278,7 @@ const App: React.FC = () => {
               isProcessing={isProcessing}
             />
           ) : (
-            <ConfigPanel state={state} setState={setState} />
+            <ConfigPanel state={state} setState={setState} onSavePersona={savePersona} />
           )}
         </div>
       </main>
