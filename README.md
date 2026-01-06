@@ -28,8 +28,3 @@ An autonomous multi-agent simulation lab for observing emergent LLM behaviors, d
 
 - The app registers a service worker for offline support.
 - Use the in-app install prompt to add the app to your home screen.
-# Aletheia-Digital-Petri-Dish-Code
-# Aletheia-Digital-Petri-Dish-Code
-# Aletheia
-# Aletheia
-# Aletheia
