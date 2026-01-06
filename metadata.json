@@ -1,0 +1,8 @@
+{
+  "name": "Aletheia: Digital Petri Dish",
+  "description": "An autonomous multi-agent simulation environment for observing emergent LLM behaviors and complex dialogue loops.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
