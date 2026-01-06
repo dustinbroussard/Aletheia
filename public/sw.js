@@ -1,11 +1,14 @@
 const CACHE_NAME = 'aletheia-pwa-v1';
 const RUNTIME_CACHE = 'aletheia-runtime-v1';
+const scopeUrl = self.registration.scope;
+const toScopeUrl = (path) => new URL(path, scopeUrl).toString();
+const INDEX_URL = toScopeUrl('index.html');
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  toScopeUrl(''),
+  INDEX_URL,
+  toScopeUrl('manifest.webmanifest'),
+  toScopeUrl('icons/icon-192.png'),
+  toScopeUrl('icons/icon-512.png')
 ];
 
 self.addEventListener('install', (event) => {
@@ -35,15 +38,15 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match('/index.html').then((cached) =>
+      caches.match(INDEX_URL).then((cached) =>
         cached ||
         fetch(request)
           .then((response) => {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
+            caches.open(CACHE_NAME).then((cache) => cache.put(INDEX_URL, copy));
             return response;
           })
-          .catch(() => caches.match('/index.html'))
+          .catch(() => caches.match(INDEX_URL))
       )
     );
     return;
